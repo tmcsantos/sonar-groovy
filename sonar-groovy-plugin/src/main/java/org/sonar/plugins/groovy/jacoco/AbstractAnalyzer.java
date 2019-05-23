@@ -35,7 +35,7 @@ import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.coverage.CoverageType;
 import org.sonar.api.batch.sensor.coverage.NewCoverage;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.groovy.GroovyPlugin;
 import org.sonar.plugins.groovy.foundation.GroovyFileSystem;
@@ -48,18 +48,18 @@ public abstract class AbstractAnalyzer {
   private final GroovyFileSystem groovyFileSystem;
   private Map<String, File> classFilesCache;
 
-  public AbstractAnalyzer(GroovyFileSystem groovyFileSystem, PathResolver pathResolver, Settings settings) {
+  public AbstractAnalyzer(GroovyFileSystem groovyFileSystem, PathResolver pathResolver, Configuration configuration) {
     this.groovyFileSystem = groovyFileSystem;
     baseDir = groovyFileSystem.baseDir();
     this.pathResolver = pathResolver;
-    this.binaryDirs = getFiles(getBinaryDirectories(settings), baseDir);
+    this.binaryDirs = getFiles(getBinaryDirectories(configuration), baseDir);
   }
 
-  private List<String> getBinaryDirectories(Settings settings) {
-    if (settings.hasKey(GroovyPlugin.SONAR_GROOVY_BINARIES)) {
-      return Arrays.asList(settings.getStringArray(GroovyPlugin.SONAR_GROOVY_BINARIES));
+  private List<String> getBinaryDirectories(Configuration configuration) {
+    if (configuration.hasKey(GroovyPlugin.SONAR_GROOVY_BINARIES)) {
+      return Arrays.asList(configuration.getStringArray(GroovyPlugin.SONAR_GROOVY_BINARIES));
     }
-    return Arrays.asList(settings.getStringArray(GroovyPlugin.SONAR_GROOVY_BINARIES_FALLBACK));
+    return Arrays.asList(configuration.getStringArray(GroovyPlugin.SONAR_GROOVY_BINARIES_FALLBACK));
   }
 
   private static List<File> getFiles(List<String> binaryDirectories, File baseDir) {

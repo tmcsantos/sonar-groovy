@@ -22,6 +22,7 @@ package org.sonar.plugins.groovy.codenarc;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,12 +35,12 @@ import org.codenarc.CodeNarcRunner;
 import org.codenarc.rule.Violation;
 import org.sonar.api.batch.fs.InputFile;
 import org.sonar.api.batch.rule.ActiveRule;
+import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.sensor.Sensor;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.batch.sensor.issue.NewIssue;
 import org.sonar.api.batch.sensor.issue.NewIssueLocation;
-import org.sonar.api.profiles.RulesProfile;
 import org.sonar.api.rule.RuleKey;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
@@ -52,11 +53,11 @@ public class CodeNarcSensor implements Sensor {
 
   private static final Logger LOG = Loggers.get(CodeNarcSensor.class);
 
-  private final RulesProfile rulesProfile;
+  private final ActiveRules activeRules;
   private final GroovyFileSystem groovyFileSystem;
 
-  public CodeNarcSensor(RulesProfile profile, GroovyFileSystem groovyFileSystem) {
-    this.rulesProfile = profile;
+  public CodeNarcSensor(ActiveRules activeRules, GroovyFileSystem groovyFileSystem) {
+    this.activeRules = activeRules;
     this.groovyFileSystem = groovyFileSystem;
   }
 
@@ -71,10 +72,10 @@ public class CodeNarcSensor implements Sensor {
   @Override
   public void execute(SensorContext context) {
     // Should we reuse existing report from CodeNarc ?
-    if (context.settings().hasKey(GroovyPlugin.CODENARC_REPORT_PATHS)) {
+    if (context.config().hasKey(GroovyPlugin.CODENARC_REPORT_PATHS)) {
       // Yes
-      String[] codeNarcReportPaths = context.settings().getStringArray(GroovyPlugin.CODENARC_REPORT_PATHS);
-      String codeNarcReportPath = context.settings().getString(GroovyPlugin.CODENARC_REPORT_PATH);
+      String[] codeNarcReportPaths = context.config().getStringArray(GroovyPlugin.CODENARC_REPORT_PATHS);
+      String codeNarcReportPath = context.config().get(GroovyPlugin.CODENARC_REPORT_PATH).orElse(null);
       if (codeNarcReportPaths.length == 0) {
         codeNarcReportPaths = new String[] { codeNarcReportPath };
       }
@@ -172,8 +173,8 @@ public class CodeNarcSensor implements Sensor {
   private void exportCodeNarcConfiguration(File file) {
     try {
       StringWriter writer = new StringWriter();
-      new CodeNarcProfileExporter(writer).exportProfile(rulesProfile);
-      FileUtils.writeStringToFile(file, writer.toString());
+      new CodeNarcProfileExporter(writer).exportProfile(activeRules);
+      FileUtils.writeStringToFile(file, writer.toString(), Charset.forName("UTF-8"));
     } catch (IOException e) {
       throw new IllegalStateException("Can not generate CodeNarc configuration file", e);
     }

@@ -66,14 +66,16 @@ import org.sonar.plugins.groovy.surefire.GroovySurefireSensor;
     description = "Comma-separated list of suffixes for files to analyze. To not filter, leave the list empty.",
     project = true,
     module = true,
-    global = true),
+    global = true,
+    multiValues = true),
   @Property(
     key = GroovyPlugin.SONAR_GROOVY_BINARIES,
     name = "Binary directories",
     description = "Comma-separated list of optional directories that contain the compiled groovy sources.",
     project = true,
     module = true,
-    global = true)
+    global = true,
+    multiValues = true)
 })
 public class GroovyPlugin implements Plugin {
 

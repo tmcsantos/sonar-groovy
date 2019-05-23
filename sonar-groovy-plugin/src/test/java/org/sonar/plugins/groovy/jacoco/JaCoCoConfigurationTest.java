@@ -36,7 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class JaCoCoConfigurationTest {
 
-  private Settings settings;
+  private MapSettings settings;
   private JaCoCoConfiguration jacocoSettings;
   private DefaultFileSystem fileSystem;
 
@@ -46,7 +46,7 @@ public class JaCoCoConfigurationTest {
             new PropertyDefinitions().addComponents(JaCoCoConfiguration.getPropertyDefinitions())
     );
     fileSystem = new DefaultFileSystem(new File("."));
-    jacocoSettings = new JaCoCoConfiguration(settings, fileSystem);
+    jacocoSettings = new JaCoCoConfiguration(settings.asConfig(), fileSystem);
   }
 
   @Test

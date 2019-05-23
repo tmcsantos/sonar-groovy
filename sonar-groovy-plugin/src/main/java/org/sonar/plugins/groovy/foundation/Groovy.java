@@ -22,7 +22,7 @@ package org.sonar.plugins.groovy.foundation;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.resources.AbstractLanguage;
 import org.sonar.plugins.groovy.GroovyPlugin;
 
@@ -31,16 +31,16 @@ public class Groovy extends AbstractLanguage {
   public static final String KEY = "grvy";
 
   /**
-   * Settings of the plugin.
+   * Configuration of the plugin.
    */
-  private final Settings settings;
+  private final Configuration configuration;
 
   /**
    * Default constructor
    */
-  public Groovy(Settings settings) {
+  public Groovy(Configuration configuration) {
     super(KEY, "Groovy");
-    this.settings = settings;
+    this.configuration = configuration;
   }
 
   /**
@@ -50,7 +50,7 @@ public class Groovy extends AbstractLanguage {
    */
   @Override
   public String[] getFileSuffixes() {
-    String[] suffixes = filterEmptyStrings(settings.getStringArray(GroovyPlugin.FILE_SUFFIXES_KEY));
+    String[] suffixes = filterEmptyStrings(configuration.getStringArray(GroovyPlugin.FILE_SUFFIXES_KEY));
     if (suffixes.length == 0) {
       suffixes = StringUtils.split(GroovyPlugin.DEFAULT_FILE_SUFFIXES, ",");
     }

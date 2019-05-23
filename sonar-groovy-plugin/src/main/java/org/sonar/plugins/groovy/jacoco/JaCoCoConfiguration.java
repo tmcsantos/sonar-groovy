@@ -22,11 +22,11 @@ package org.sonar.plugins.groovy.jacoco;
 import java.util.Arrays;
 import java.util.List;
 import org.sonar.api.PropertyType;
-import org.sonar.api.batch.ScannerSide;
 import org.sonar.api.batch.fs.FileSystem;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.PropertyDefinition;
-import org.sonar.api.config.Settings;
 import org.sonar.api.resources.Qualifiers;
+import org.sonar.api.scanner.ScannerSide;
 import org.sonar.plugins.groovy.foundation.Groovy;
 
 @ScannerSide
@@ -39,11 +39,11 @@ public class JaCoCoConfiguration {
   public static final String REPORT_MISSING_FORCE_ZERO = "sonar.groovy.jacoco.reportMissing.force.zero";
   public static final boolean REPORT_MISSING_FORCE_ZERO_DEFAULT_VALUE = false;
 
-  private final Settings settings;
+  private final Configuration configuration;
   private final FileSystem fileSystem;
 
-  public JaCoCoConfiguration(Settings settings, FileSystem fileSystem) {
-    this.settings = settings;
+  public JaCoCoConfiguration(Configuration configuration, FileSystem fileSystem) {
+    this.configuration = configuration;
     this.fileSystem = fileSystem;
   }
 
@@ -56,15 +56,15 @@ public class JaCoCoConfiguration {
   }
 
   public String getReportPath() {
-    return settings.getString(REPORT_PATH_PROPERTY);
+    return configuration.get(REPORT_PATH_PROPERTY).orElse(null);
   }
 
   public String getItReportPath() {
-    return settings.getString(IT_REPORT_PATH_PROPERTY);
+    return configuration.get(IT_REPORT_PATH_PROPERTY).orElse(null);
   }
 
   private boolean isCoverageToZeroWhenNoReport() {
-    return settings.getBoolean(REPORT_MISSING_FORCE_ZERO);
+    return configuration.getBoolean(REPORT_MISSING_FORCE_ZERO).orElse(Boolean.FALSE);
   }
 
   public static List<PropertyDefinition> getPropertyDefinitions() {

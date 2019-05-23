@@ -55,7 +55,7 @@ public class JaCoCoOverallSensorTest {
   private File jacocoITData;
   private File outputDir;
   private DefaultInputFile inputFile;
-  private Settings settings;
+  private MapSettings settings;
   private SensorContextTester context;
 
   @Before
@@ -86,7 +86,7 @@ public class JaCoCoOverallSensorTest {
     when(configuration.shouldExecuteOnProject(true)).thenReturn(true);
     when(configuration.shouldExecuteOnProject(false)).thenReturn(false);
     pathResolver = mock(PathResolver.class);
-    sensor = new JaCoCoOverallSensor(configuration, new GroovyFileSystem(context.fileSystem()), pathResolver, settings);
+    sensor = new JaCoCoOverallSensor(configuration, new GroovyFileSystem(context.fileSystem()), pathResolver, settings.asConfig());
   }
 
   @Test

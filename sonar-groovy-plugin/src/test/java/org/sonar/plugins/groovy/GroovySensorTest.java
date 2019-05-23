@@ -25,7 +25,6 @@ import org.mockito.Mockito;
 import org.sonar.api.batch.fs.internal.*;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.measures.FileLinesContext;
@@ -45,20 +44,20 @@ import static org.mockito.Mockito.when;
 
 public class GroovySensorTest {
 
-  private Settings settings = new MapSettings();
+  private MapSettings settings = new MapSettings();
 
   private FileLinesContextFactory fileLinesContextFactory = mock(FileLinesContextFactory.class);
 
   private DefaultFileSystem fileSystem = new DefaultFileSystem(new File("."));
 
-  private GroovySensor sensor = new GroovySensor(settings, fileLinesContextFactory, fileSystem);
+  private GroovySensor sensor = new GroovySensor(settings.asConfig(), fileLinesContextFactory, fileSystem);
 
   @Test
   public void do_nothing_when_no_groovy_file() {
     SensorContextTester context = SensorContextTester.create(new File("."));
     context = Mockito.spy(context);
 
-    sensor = new GroovySensor(settings, fileLinesContextFactory, context.fileSystem());
+    sensor = new GroovySensor(settings.asConfig(), fileLinesContextFactory, context.fileSystem());
     sensor.execute(context);
 
     Mockito.verify(context, Mockito.never()).newHighlighting();
@@ -83,7 +82,6 @@ public class GroovySensorTest {
     File sourceFile = new File(sourceDir, "Greeting.groovy");
 
     fileSystem = context.fileSystem();
-    fileSystem.add(new DefaultInputDir("", sourceDir.getPath()));
 
     Metadata metadata = new FileMetadata().readMetadata(
             Files.newBufferedReader(sourceFile.toPath(), StandardCharsets.UTF_8)
@@ -94,18 +92,15 @@ public class GroovySensorTest {
     FileLinesContext fileLinesContext = mock(FileLinesContext.class);
     when(fileLinesContextFactory.createFor(any(DefaultInputFile.class))).thenReturn(fileLinesContext);
 
-    sensor = new GroovySensor(settings, fileLinesContextFactory, fileSystem);
+    sensor = new GroovySensor(settings.asConfig(), fileLinesContextFactory, fileSystem);
     sensor.execute(context);
 
     String key = groovyFile.key();
-    assertThat(context.measure(key, CoreMetrics.LINES).value()).isEqualTo(33);
     assertThat(context.measure(key, CoreMetrics.NCLOC).value()).isEqualTo(17);
     assertThat(context.measure(key, CoreMetrics.COMMENT_LINES).value()).isEqualTo(expectedCommentMetric);
 
     // 11 times for comment because we register comment even when ignoring header comment
-    Mockito.verify(fileLinesContext, Mockito.times(11)).setIntValue(Mockito.eq(CoreMetrics.COMMENT_LINES_DATA_KEY), Matchers.anyInt(), Mockito.eq(1));
     Mockito.verify(fileLinesContext, Mockito.times(17)).setIntValue(Mockito.eq(CoreMetrics.NCLOC_DATA_KEY), Matchers.anyInt(), Mockito.eq(1));
-    Mockito.verify(fileLinesContext).setIntValue(CoreMetrics.COMMENT_LINES_DATA_KEY, 18, 1);
     Mockito.verify(fileLinesContext).setIntValue(CoreMetrics.NCLOC_DATA_KEY, 18, 1);
     // Only "Greeting.groovy" is part of the file system.
     Mockito.verify(fileLinesContext, Mockito.times(1)).save();

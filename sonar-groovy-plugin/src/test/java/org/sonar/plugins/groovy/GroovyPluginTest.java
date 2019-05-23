@@ -31,11 +31,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class GroovyPluginTest {
 
-  public static final Version VERSION_7_4 = Version.create(7, 4);
+  public static final Version VERSION_7_7 = Version.create(7, 7);
 
   @Test
   public void testExtensions() {
-    SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(VERSION_7_4, SonarQubeSide.SERVER);
+    SonarRuntime runtime = SonarRuntimeImpl.forSonarQube(VERSION_7_7, SonarQubeSide.SERVER);
 
     GroovyPlugin plugin = new GroovyPlugin();
     Plugin.Context context = new Plugin.Context(runtime);

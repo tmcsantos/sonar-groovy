@@ -26,9 +26,6 @@ import java.nio.file.Paths;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentMatcher;
-import org.mockito.ArgumentMatchers;
-import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.fs.InputFile;
@@ -39,21 +36,14 @@ import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.fs.internal.SensorStrategy;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.component.ResourcePerspectives;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
 import org.sonar.api.measures.CoreMetrics;
-import org.sonar.api.test.MutableTestCase;
-import org.sonar.api.test.MutableTestPlan;
-import org.sonar.api.test.TestCase;
 import org.sonar.plugins.groovy.GroovyPlugin;
 import org.sonar.plugins.groovy.foundation.Groovy;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -66,7 +56,6 @@ import static org.mockito.Mockito.when;
  */
 public class GroovySurefireParserTest {
 
-  private ResourcePerspectives perspectives;
   private FileSystem fs;
   private GroovySurefireParser parser;
   private Groovy groovy;
@@ -75,14 +64,13 @@ public class GroovySurefireParserTest {
   @Before
   public void before() {
     context = mock(SensorContext.class);
-    perspectives = mock(ResourcePerspectives.class);
     fs = new DefaultFileSystem(new File("."));
 
-    Settings settings = mock(Settings.class);
-    when(settings.getStringArray(GroovyPlugin.FILE_SUFFIXES_KEY)).thenReturn(new String[] {".groovy", "grvy"});
-    groovy = new Groovy(settings);
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getStringArray(GroovyPlugin.FILE_SUFFIXES_KEY)).thenReturn(new String[] {".groovy", "grvy"});
+    groovy = new Groovy(configuration);
 
-    parser = spy(new GroovySurefireParser(groovy, perspectives, fs));
+    parser = spy(new GroovySurefireParser(groovy, fs));
 
     doAnswer((Answer<InputFile>) invocation ->
             new DefaultInputFile(
@@ -91,35 +79,33 @@ public class GroovySurefireParserTest {
     );
   }
 
-  @Test
-  public void should_register_tests() throws URISyntaxException {
-    SensorContextTester context = SensorContextTester.create(new File(""));
+//  @Test
+//  public void should_register_tests() throws URISyntaxException {
+//    SensorContextTester context = SensorContextTester.create(new File(""));
+//
+//    MutableTestCase testCase = mock(MutableTestCase.class);
+//    when(testCase.setDurationInMs(anyLong())).thenReturn(testCase);
+//    when(testCase.setStatus(any(TestCase.Status.class))).thenReturn(testCase);
+//    when(testCase.setMessage(ArgumentMatchers.nullable(String.class))).thenReturn(testCase);
+//    when(testCase.setStackTrace(anyString())).thenReturn(testCase);
+//    when(testCase.setType(anyString())).thenReturn(testCase);
+//    MutableTestPlan testPlan = mock(MutableTestPlan.class);
+//    when(testPlan.addTestCase(anyString())).thenReturn(testCase);
+//
+//    parser.collect(context, getDir("multipleReports"));
+//
+//    verify(testPlan).addTestCase("testGetUnKnownCollector");
+//    verify(testPlan).addTestCase("testGetJDependsCollector");
+//  }
 
-    MutableTestCase testCase = mock(MutableTestCase.class);
-    when(testCase.setDurationInMs(anyLong())).thenReturn(testCase);
-    when(testCase.setStatus(any(TestCase.Status.class))).thenReturn(testCase);
-    when(testCase.setMessage(ArgumentMatchers.nullable(String.class))).thenReturn(testCase);
-    when(testCase.setStackTrace(anyString())).thenReturn(testCase);
-    when(testCase.setType(anyString())).thenReturn(testCase);
-    MutableTestPlan testPlan = mock(MutableTestPlan.class);
-    when(testPlan.addTestCase(anyString())).thenReturn(testCase);
-    when(perspectives.as(eq(MutableTestPlan.class),
-      argThat(inputFileMatcher(":ch.hortis.sonar.mvn.mc.MetricsCollectorRegistryTest")))).thenReturn(testPlan);
-
-    parser.collect(context, getDir("multipleReports"));
-
-    verify(testPlan).addTestCase("testGetUnKnownCollector");
-    verify(testPlan).addTestCase("testGetJDependsCollector");
-  }
-
-  private static ArgumentMatcher<InputFile> inputFileMatcher(final String fileName) {
-    return new ArgumentMatcher<InputFile>() {
-      @Override
-      public boolean matches(InputFile arg0) {
-        return fileName.equals(arg0.key());
-      }
-    };
-  }
+//  private static ArgumentMatcher<InputFile> inputFileMatcher(final String fileName) {
+//    return new ArgumentMatcher<InputFile>() {
+//      @Override
+//      public boolean matches(InputFile arg0) {
+//        return fileName.equals(arg0.key());
+//      }
+//    };
+//  }
 
   @Test
   public void should_store_zero_tests_when_directory_is_null_or_non_existing_or_a_file() throws Exception {
@@ -228,7 +214,7 @@ public class GroovySurefireParserTest {
     DefaultInputFile inputFile = new DefaultInputFile(indexedFile, f -> {});
     fs.add(inputFile);
 
-    parser = new GroovySurefireParser(groovy, perspectives, fs);
+    parser = new GroovySurefireParser(groovy, fs);
 
     SensorContextTester context = SensorContextTester.create(new File(""));
     context.setFileSystem(fs);

@@ -21,28 +21,28 @@ package org.sonar.plugins.groovy.codenarc;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.regex.Pattern;
+
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.sonar.api.batch.fs.InputFile.Type;
 import org.sonar.api.batch.fs.internal.DefaultIndexedFile;
 import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.fs.internal.FileMetadata;
 import org.sonar.api.batch.fs.internal.Metadata;
+import org.sonar.api.batch.rule.ActiveRule;
+import org.sonar.api.batch.rule.ActiveRules;
 import org.sonar.api.batch.rule.internal.ActiveRulesBuilder;
+import org.sonar.api.batch.rule.internal.NewActiveRule;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
 import org.sonar.api.config.PropertyDefinitions;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
-import org.sonar.api.profiles.RulesProfile;
 import org.sonar.api.rule.RuleKey;
-import org.sonar.api.rules.ActiveRule;
 import org.sonar.plugins.groovy.GroovyPlugin;
 import org.sonar.plugins.groovy.foundation.Groovy;
 import org.sonar.plugins.groovy.foundation.GroovyFileSystem;
@@ -53,7 +53,7 @@ import static org.mockito.Mockito.when;
 
 public class CodeNarcSensorTest {
 
-  private RulesProfile profile;
+  private ActiveRules activeRules;
   private CodeNarcSensor sensor;
   private Groovy groovy;
   private SensorContextTester sensorContextTester;
@@ -67,12 +67,12 @@ public class CodeNarcSensorTest {
     sensorContextTester = SensorContextTester.create(temp.newFolder().toPath());
     sensorContextTester.fileSystem().setWorkDir(temp.newFolder().toPath());
 
-    profile = mock(RulesProfile.class);
+    activeRules = mock(ActiveRules.class);
 
 
     sensorContextTester.setSettings(new MapSettings(new PropertyDefinitions(GroovyPlugin.class)));
-    groovy = new Groovy(sensorContextTester.settings());
-    sensor = new CodeNarcSensor(profile, new GroovyFileSystem(sensorContextTester.fileSystem()));
+    groovy = new Groovy(sensorContextTester.config());
+    sensor = new CodeNarcSensor(activeRules, new GroovyFileSystem(sensorContextTester.fileSystem()));
   }
 
   @Test
@@ -163,8 +163,9 @@ public class CodeNarcSensorTest {
     sensorContextTester.setActiveRules(activeRulesBuilder.build());
 
     ActiveRule activeRule = mock(ActiveRule.class);
-    when(activeRule.getRuleKey()).thenReturn("org.codenarc.rule.basic.EmptyClassRule");
-    when(profile.getActiveRulesByRepository(CodeNarcRulesDefinition.REPOSITORY_KEY)).thenReturn(Arrays.asList(activeRule));
+    when(activeRule.ruleKey()).thenReturn(RuleKey.of(CodeNarcRulesDefinition.REPOSITORY_KEY, "org.codenarc.rule.basic.EmptyClassRule"));
+    when(activeRules.findByRepository(CodeNarcRulesDefinition.REPOSITORY_KEY)).thenReturn(
+        Collections.singletonList(activeRule));
 
     sensor.execute(sensorContextTester);
 
@@ -198,8 +199,9 @@ public class CodeNarcSensorTest {
     sensorContextTester.setActiveRules(activeRulesBuilder.build());
 
     ActiveRule activeRule = mock(ActiveRule.class);
-    when(activeRule.getRuleKey()).thenReturn("org.codenarc.rule.basic.EmptyClassRule");
-    when(profile.getActiveRulesByRepository(CodeNarcRulesDefinition.REPOSITORY_KEY)).thenReturn(Arrays.asList(activeRule));
+    when(activeRule.ruleKey()).thenReturn(RuleKey.of(CodeNarcRulesDefinition.REPOSITORY_KEY, "org.codenarc.rule.basic.EmptyClassRule"));
+    when(activeRules.findByRepository(CodeNarcRulesDefinition.REPOSITORY_KEY)).thenReturn(
+        Collections.singletonList(activeRule));
 
     sensor.execute(sensorContextTester);
 
@@ -244,7 +246,7 @@ public class CodeNarcSensorTest {
   }
 
   private static ActiveRulesBuilder activateRule(ActiveRulesBuilder activeRulesBuilder, String ruleKey, String internalKey) {
-    return activeRulesBuilder.create(RuleKey.of(CodeNarcRulesDefinition.REPOSITORY_KEY, ruleKey)).setInternalKey(internalKey).activate();
+    return activeRulesBuilder.addRule(new NewActiveRule.Builder().setRuleKey(RuleKey.of(CodeNarcRulesDefinition.REPOSITORY_KEY, ruleKey)).setInternalKey(internalKey).build());
   }
 
 }

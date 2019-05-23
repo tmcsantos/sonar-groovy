@@ -24,7 +24,7 @@ import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.sensor.Sensor;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
 import org.sonar.plugins.groovy.GroovyPlugin;
@@ -35,12 +35,12 @@ public class CoberturaSensor implements Sensor {
 
   private static final Logger LOG = Loggers.get(CoberturaSensor.class);
 
-  private final Settings settings;
+  private final Configuration configuration;
   private final FileSystem fileSystem;
   private final GroovyFileSystem groovyFileSystem;
 
-  public CoberturaSensor(Settings settings, FileSystem fileSystem) {
-    this.settings = settings;
+  public CoberturaSensor(Configuration configuration, FileSystem fileSystem) {
+    this.configuration = configuration;
     this.fileSystem = fileSystem;
     this.groovyFileSystem = new GroovyFileSystem(fileSystem);
   }
@@ -64,7 +64,7 @@ public class CoberturaSensor implements Sensor {
   }
 
   public void analyse(SensorContext context) {
-    String reportPath = settings.getString(GroovyPlugin.COBERTURA_REPORT_PATH);
+    String reportPath = configuration.get(GroovyPlugin.COBERTURA_REPORT_PATH).orElse(null);
 
     if (reportPath != null) {
       File xmlFile = new File(reportPath);

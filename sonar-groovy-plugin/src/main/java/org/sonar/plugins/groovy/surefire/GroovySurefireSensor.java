@@ -24,7 +24,7 @@ import org.sonar.api.batch.fs.FileSystem;
 import org.sonar.api.batch.sensor.Sensor;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.api.utils.log.Logger;
 import org.sonar.api.utils.log.Loggers;
@@ -39,13 +39,13 @@ public class GroovySurefireSensor implements Sensor {
   private static final Logger LOGGER = Loggers.get(GroovySurefireSensor.class);
 
   private final GroovySurefireParser groovySurefireParser;
-  private final Settings settings;
+  private final Configuration configuration;
   private final FileSystem fs;
   private final PathResolver pathResolver;
 
-  public GroovySurefireSensor(GroovySurefireParser groovySurefireParser, Settings settings, FileSystem fs, PathResolver pathResolver) {
+  public GroovySurefireSensor(GroovySurefireParser groovySurefireParser, Configuration configuration, FileSystem fs, PathResolver pathResolver) {
     this.groovySurefireParser = groovySurefireParser;
-    this.settings = settings;
+    this.configuration = configuration;
     this.fs = fs;
     this.pathResolver = pathResolver;
   }
@@ -57,7 +57,7 @@ public class GroovySurefireSensor implements Sensor {
 
   @Override
   public void execute(SensorContext context) {
-    File dir = SurefireUtils.getReportsDirectory(settings, fs, pathResolver);
+    File dir = SurefireUtils.getReportsDirectory(configuration, fs, pathResolver);
     collect(context, dir);
   }
 

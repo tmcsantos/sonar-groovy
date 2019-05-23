@@ -24,7 +24,7 @@ import org.sonar.api.batch.sensor.Sensor;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.batch.sensor.coverage.CoverageType;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.groovy.foundation.Groovy;
 import org.sonar.plugins.groovy.foundation.GroovyFileSystem;
@@ -33,16 +33,16 @@ public class JaCoCoOverallSensor implements Sensor {
 
   public static final String JACOCO_OVERALL = "jacoco-overall.exec";
 
-  private final JaCoCoConfiguration configuration;
+  private final JaCoCoConfiguration jaCoCoConfiguration;
   private final GroovyFileSystem fileSystem;
   private final PathResolver pathResolver;
-  private final Settings settings;
+  private final Configuration configuration;
 
-  public JaCoCoOverallSensor(JaCoCoConfiguration configuration, GroovyFileSystem fileSystem, PathResolver pathResolver, Settings settings) {
-    this.configuration = configuration;
+  public JaCoCoOverallSensor(JaCoCoConfiguration jaCoCoConfiguration, GroovyFileSystem fileSystem, PathResolver pathResolver, Configuration configuration) {
+    this.jaCoCoConfiguration = jaCoCoConfiguration;
     this.pathResolver = pathResolver;
     this.fileSystem = fileSystem;
-    this.settings = settings;
+    this.configuration = configuration;
   }
 
   @Override
@@ -54,8 +54,8 @@ public class JaCoCoOverallSensor implements Sensor {
 
   @Override
   public void execute(SensorContext context) {
-    File reportUTs = pathResolver.relativeFile(fileSystem.baseDir(), configuration.getReportPath());
-    File reportITs = pathResolver.relativeFile(fileSystem.baseDir(), configuration.getItReportPath());
+    File reportUTs = pathResolver.relativeFile(fileSystem.baseDir(), jaCoCoConfiguration.getReportPath());
+    File reportITs = pathResolver.relativeFile(fileSystem.baseDir(), jaCoCoConfiguration.getItReportPath());
     if (shouldExecuteOnProject()) {
       File reportOverall = new File(context.fileSystem().workDir(), JACOCO_OVERALL);
       reportOverall.getParentFile().mkdirs();
@@ -67,10 +67,10 @@ public class JaCoCoOverallSensor implements Sensor {
   // VisibleForTesting
   boolean shouldExecuteOnProject() {
     File baseDir = fileSystem.baseDir();
-    File reportUTs = pathResolver.relativeFile(baseDir, configuration.getReportPath());
-    File reportITs = pathResolver.relativeFile(baseDir, configuration.getItReportPath());
+    File reportUTs = pathResolver.relativeFile(baseDir, jaCoCoConfiguration.getReportPath());
+    File reportITs = pathResolver.relativeFile(baseDir, jaCoCoConfiguration.getItReportPath());
     boolean foundOneReport = reportUTs.exists() || reportITs.exists();
-    boolean shouldExecute = configuration.shouldExecuteOnProject(foundOneReport);
+    boolean shouldExecute = jaCoCoConfiguration.shouldExecuteOnProject(foundOneReport);
     if (!foundOneReport && shouldExecute) {
       JaCoCoExtensions.logger().info("JaCoCoOverallSensor: JaCoCo reports not found.");
     }
@@ -81,7 +81,7 @@ public class JaCoCoOverallSensor implements Sensor {
     private final File report;
 
     OverallAnalyzer(File report) {
-      super(fileSystem, pathResolver, settings);
+      super(fileSystem, pathResolver, configuration);
       this.report = report;
     }
 

@@ -20,7 +20,6 @@
 package org.sonar.plugins.groovy.foundation;
 
 import org.junit.Test;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.plugins.groovy.GroovyPlugin;
 
@@ -30,8 +29,8 @@ public class GroovyTest {
 
   @Test
   public void test() {
-    Settings settings = new MapSettings();
-    Groovy language = new Groovy(settings);
+    MapSettings settings = new MapSettings();
+    Groovy language = new Groovy(settings.asConfig());
     assertThat(language.getKey()).isEqualTo("grvy");
     assertThat(language.getName()).isEqualTo("Groovy");
     assertThat(language.getFileSuffixes()).isEqualTo(new String[] {".groovy"});

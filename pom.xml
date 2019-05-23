@@ -59,9 +59,9 @@
   </issueManagement>
   
   <properties>
-    <sonar.version>7.4</sonar.version>
+    <sonar.version>7.7</sonar.version>
     <jacoco.previous.version>0.7.4.201502262128</jacoco.previous.version>
-    <jacoco.version>0.7.5.201505241946</jacoco.version>
+    <jacoco.version>0.8.1</jacoco.version>
     <groovy.version>2.5.4</groovy.version>
     <orchestrator.version>3.11</orchestrator.version>
     <!-- used for deployment to SonarSource Artifactory -->

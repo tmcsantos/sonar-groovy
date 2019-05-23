@@ -31,7 +31,6 @@ import org.sonar.api.batch.fs.internal.DefaultInputFile;
 import org.sonar.api.batch.fs.internal.Metadata;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.groovy.GroovyPlugin;
@@ -74,7 +73,7 @@ public class JaCoCoSensorTest {
         FileUtils.copyFile(TestUtils.getResource("/org/sonar/plugins/groovy/jacoco/Hello$InnerClass.class.toCopy"),
                 new File(jacocoExecutionData.getParentFile(), "Hello$InnerClass.class"));
 
-        Settings settings = new MapSettings();
+        MapSettings settings = new MapSettings();
         settings.setProperty(GroovyPlugin.SONAR_GROOVY_BINARIES, ".");
 
         configuration = mock(JaCoCoConfiguration.class);
@@ -91,7 +90,7 @@ public class JaCoCoSensorTest {
         fileSystem.add(inputFile);
 
         pathResolver = mock(PathResolver.class);
-        sensor = new JaCoCoSensor(configuration, new GroovyFileSystem(fileSystem), pathResolver, settings);
+        sensor = new JaCoCoSensor(configuration, new GroovyFileSystem(fileSystem), pathResolver, settings.asConfig());
 
         return jacocoExecutionData;
     }

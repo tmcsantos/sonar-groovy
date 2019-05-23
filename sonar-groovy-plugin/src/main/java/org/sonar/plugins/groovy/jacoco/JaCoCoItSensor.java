@@ -24,22 +24,22 @@ import org.sonar.api.batch.sensor.Sensor;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.SensorDescriptor;
 import org.sonar.api.batch.sensor.coverage.CoverageType;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.groovy.foundation.Groovy;
 import org.sonar.plugins.groovy.foundation.GroovyFileSystem;
 
 public class JaCoCoItSensor implements Sensor {
-  private final JaCoCoConfiguration configuration;
+  private final JaCoCoConfiguration jaCoCoConfiguration;
   private final GroovyFileSystem fileSystem;
   private final PathResolver pathResolver;
-  private final Settings settings;
+  private final Configuration configuration;
 
-  public JaCoCoItSensor(JaCoCoConfiguration configuration, GroovyFileSystem fileSystem, PathResolver pathResolver, Settings settings) {
-    this.configuration = configuration;
+  public JaCoCoItSensor(JaCoCoConfiguration jaCoCoConfiguration, GroovyFileSystem fileSystem, PathResolver pathResolver, Configuration configuration) {
+    this.jaCoCoConfiguration = jaCoCoConfiguration;
     this.fileSystem = fileSystem;
     this.pathResolver = pathResolver;
-    this.settings = settings;
+    this.configuration = configuration;
   }
 
   @Override
@@ -58,9 +58,9 @@ public class JaCoCoItSensor implements Sensor {
 
   // VisibleForTesting
   boolean shouldExecuteOnProject() {
-    File report = pathResolver.relativeFile(fileSystem.baseDir(), configuration.getItReportPath());
+    File report = pathResolver.relativeFile(fileSystem.baseDir(), jaCoCoConfiguration.getItReportPath());
     boolean foundReport = report.exists() && report.isFile();
-    boolean shouldExecute = configuration.shouldExecuteOnProject(foundReport);
+    boolean shouldExecute = jaCoCoConfiguration.shouldExecuteOnProject(foundReport);
     if (!foundReport && shouldExecute) {
       JaCoCoExtensions.logger().info(this.toString() + ": JaCoCo IT report not found.");
     }
@@ -69,12 +69,12 @@ public class JaCoCoItSensor implements Sensor {
 
   class ITAnalyzer extends AbstractAnalyzer {
     public ITAnalyzer() {
-      super(fileSystem, pathResolver, settings);
+      super(fileSystem, pathResolver, configuration);
     }
 
     @Override
     protected String getReportPath() {
-      return configuration.getItReportPath();
+      return jaCoCoConfiguration.getItReportPath();
     }
 
     @Override

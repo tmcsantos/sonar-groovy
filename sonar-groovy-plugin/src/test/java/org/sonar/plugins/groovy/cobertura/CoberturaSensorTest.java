@@ -36,7 +36,6 @@ import org.sonar.api.batch.fs.internal.Metadata;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.MapSettings;
 import org.sonar.plugins.groovy.GroovyPlugin;
 import org.sonar.plugins.groovy.foundation.Groovy;
@@ -53,16 +52,16 @@ import static org.mockito.Mockito.when;
 
 public class CoberturaSensorTest {
 
-  private Settings settings;
+  private MapSettings mapSettings;
   private CoberturaSensor sensor;
   private DefaultFileSystem fileSystem;
 
   @Before
   public void setUp() {
-    settings = new MapSettings();
-    settings.setProperty(GroovyPlugin.COBERTURA_REPORT_PATH, "src/test/resources/org/sonar/plugins/groovy/cobertura/coverage.xml");
+    mapSettings = new MapSettings();
+    mapSettings.setProperty(GroovyPlugin.COBERTURA_REPORT_PATH, "src/test/resources/org/sonar/plugins/groovy/cobertura/coverage.xml");
     fileSystem = new DefaultFileSystem(new File("."));
-    sensor = new CoberturaSensor(settings, fileSystem);
+    sensor = new CoberturaSensor(mapSettings.asConfig(), fileSystem);
   }
 
   @Test
@@ -130,7 +129,7 @@ public class CoberturaSensorTest {
       }
     });
 
-    sensor = new CoberturaSensor(settings, mockfileSystem);
+    sensor = new CoberturaSensor(mapSettings.asConfig(), mockfileSystem);
 
     SensorContextTester context = SensorContextTester.create(new File(""));
     sensor.execute(context);
@@ -156,7 +155,7 @@ public class CoberturaSensorTest {
     FileSystem mockfileSystem = mock(FileSystem.class);
     when(mockfileSystem.predicates()).thenReturn(fileSystem.predicates());
     when(mockfileSystem.inputFile(any(FilePredicate.class))).thenReturn(null);
-    sensor = new CoberturaSensor(settings, mockfileSystem);
+    sensor = new CoberturaSensor(mapSettings.asConfig(), mockfileSystem);
 
     SensorContext context = mock(SensorContext.class);
     sensor.execute(context);
@@ -168,7 +167,7 @@ public class CoberturaSensorTest {
   public void should_not_parse_report_if_settings_does_not_contain_report_path() {
     DefaultFileSystem fileSystem = new DefaultFileSystem(new File("."));
     fileSystem.add(new DefaultInputFile(getIndexedFile("fake.groovy", Groovy.KEY), f -> {}));
-    sensor = new CoberturaSensor(new MapSettings(), fileSystem);
+    sensor = new CoberturaSensor(new MapSettings().asConfig(), fileSystem);
 
     SensorContext context = mock(SensorContext.class);
     sensor.execute(context);
@@ -178,7 +177,7 @@ public class CoberturaSensorTest {
 
   @Test
   public void should_not_parse_report_if_report_does_not_exist() {
-    Settings settings = new MapSettings();
+    MapSettings settings = new MapSettings();
     settings.setProperty(GroovyPlugin.COBERTURA_REPORT_PATH, "org/sonar/plugins/groovy/cobertura/fake-coverage.xml");
 
     DefaultFileSystem fileSystem = new DefaultFileSystem(new File("."));
@@ -186,7 +185,7 @@ public class CoberturaSensorTest {
 
     fileSystem.add(new DefaultInputFile(getIndexedFile("fake.groovy", Groovy.KEY), f -> {}));
 
-    sensor = new CoberturaSensor(settings, fileSystem);
+    sensor = new CoberturaSensor(settings.asConfig(), fileSystem);
 
     SensorContext context = mock(SensorContext.class);
     sensor.execute(context);
@@ -196,13 +195,13 @@ public class CoberturaSensorTest {
 
   @Test
   public void should_use_relative_path_to_get_report() {
-    Settings settings = new MapSettings();
+    MapSettings settings = new MapSettings();
     settings.setProperty(GroovyPlugin.COBERTURA_REPORT_PATH, "//org/sonar/plugins/groovy/cobertura/fake-coverage.xml");
 
     DefaultFileSystem fileSystem = new DefaultFileSystem(new File("."));
     fileSystem.add(new DefaultInputFile(getIndexedFile("fake.groovy", Groovy.KEY), f -> {}));
 
-    sensor = new CoberturaSensor(settings, fileSystem);
+    sensor = new CoberturaSensor(settings.asConfig(), fileSystem);
 
     SensorContext context = mock(SensorContext.class);
     sensor.execute(context);

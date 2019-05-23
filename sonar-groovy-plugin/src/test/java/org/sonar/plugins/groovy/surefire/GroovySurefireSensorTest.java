@@ -31,8 +31,7 @@ import org.sonar.api.batch.fs.internal.SensorStrategy;
 import org.sonar.api.batch.sensor.SensorContext;
 import org.sonar.api.batch.sensor.internal.DefaultSensorDescriptor;
 import org.sonar.api.batch.sensor.internal.SensorContextTester;
-import org.sonar.api.component.ResourcePerspectives;
-import org.sonar.api.config.Settings;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.measures.CoreMetrics;
 import org.sonar.api.scan.filesystem.PathResolver;
 import org.sonar.plugins.groovy.GroovyPlugin;
@@ -43,6 +42,7 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyString;
@@ -57,7 +57,6 @@ import static org.mockito.Mockito.when;
 public class GroovySurefireSensorTest {
 
   private DefaultFileSystem fs = new DefaultFileSystem(new File("."));
-  private ResourcePerspectives perspectives;
   private GroovySurefireSensor surefireSensor;
   private PathResolver pathResolver = new PathResolver();
   private Groovy groovy;
@@ -69,15 +68,14 @@ public class GroovySurefireSensorTest {
     DefaultIndexedFile indexedFile = new DefaultIndexedFile("", Paths.get("."), "src/org/foo/grvy", Groovy.KEY);
     DefaultInputFile groovyFile = new DefaultInputFile(indexedFile, f -> {});
     fs.add(groovyFile);
-    perspectives = mock(ResourcePerspectives.class);
 
     context = mock(SensorContext.class);
 
-    Settings settings = mock(Settings.class);
-    when(settings.getStringArray(GroovyPlugin.FILE_SUFFIXES_KEY)).thenReturn(new String[] {".groovy", "grvy"});
-    groovy = new Groovy(settings);
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.getStringArray(GroovyPlugin.FILE_SUFFIXES_KEY)).thenReturn(new String[] {".groovy", "grvy"});
+    groovy = new Groovy(configuration);
 
-    GroovySurefireParser parser = spy(new GroovySurefireParser(groovy, perspectives, fs));
+    GroovySurefireParser parser = spy(new GroovySurefireParser(groovy, fs));
 
     doAnswer(new Answer<InputFile>() {
       @Override
@@ -86,12 +84,12 @@ public class GroovySurefireSensorTest {
       }
     }).when(parser).getUnitTestInputFile(anyString());
 
-    surefireSensor = new GroovySurefireSensor(parser, mock(Settings.class), fs, pathResolver);
+    surefireSensor = new GroovySurefireSensor(parser, mock(Configuration.class), fs, pathResolver);
   }
 
   @Test
   public void test_description() {
-    surefireSensor = new GroovySurefireSensor(new GroovySurefireParser(groovy, perspectives, fs), mock(Settings.class), fs, pathResolver);
+    surefireSensor = new GroovySurefireSensor(new GroovySurefireParser(groovy, fs), mock(Configuration.class), fs, pathResolver);
     DefaultSensorDescriptor defaultSensorDescriptor = new DefaultSensorDescriptor();
     surefireSensor.describe(defaultSensorDescriptor);
     assertThat(defaultSensorDescriptor.languages()).containsOnly(Groovy.KEY);
@@ -99,10 +97,10 @@ public class GroovySurefireSensorTest {
 
   @Test
   public void shouldNotFailIfReportsNotFound() {
-    Settings settings = mock(Settings.class);
-    when(settings.getString(SurefireUtils.SUREFIRE_REPORTS_PATH_PROPERTY)).thenReturn("unknown");
+    Configuration configuration = mock(Configuration.class);
+    when(configuration.get(SurefireUtils.SUREFIRE_REPORTS_PATH_PROPERTY)).thenReturn(Optional.of("unknown"));
 
-    GroovySurefireSensor surefireSensor = new GroovySurefireSensor(mock(GroovySurefireParser.class), settings, fs, pathResolver);
+    GroovySurefireSensor surefireSensor = new GroovySurefireSensor(mock(GroovySurefireParser.class), configuration, fs, pathResolver);
     surefireSensor.execute(mock(SensorContext.class));
   }
 
